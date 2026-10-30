@@ -67,5 +67,7 @@ R, R Markdown, ProjectLibre
 - `report.pdf`: [if you decide to include it] the written report
 - `images/`: figures used in this README
 
-## Note on data
+## Data, Privacy and Ethics
 The datasets are publicly available from the sources above and are not included in this repo.
+
+The Police data includes finer geographic detail (Area Unit), which can raise disclosure risk when counts are low and someone has local knowledge of the area. I aggregated everything to territorial authority level and did not produce or store results at a finer level. This reduces the risk of pointing to a specific person or property while keeping enough detail for the analysis. The repo contains no data finer than what is already publicly available from the Police and Stats NZ.
