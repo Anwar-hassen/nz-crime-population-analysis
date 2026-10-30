@@ -1,0 +1,297 @@
+---
+title: "DATA301 Phase 2 Code"
+author: "Anwar Hassen, 300668568"
+output:
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Datasets
+```{r}
+offence <-read.csv("cleaned_offence_breakdown_complete.csv")
+ta <- read.csv("cleaned_merged_rates.csv")
+head(offence)
+
+```
+# Data Preparation
+```{r}
+#result <- csv_data[csv_data$salary > 60000, c("name", "salary")]
+theft <- offence[offence$ANZSOC.Division =='Theft',c("Territorial.Authority","FY_Year","ANZSOC.Division", "Victimisations")]
+head(theft)
+
+```
+```{r}
+
+head(ta)
+population <- ta[,c("Territorial.Authority","Year","Population")]
+head (population)
+```
+```{r}
+library(dplyr) 
+theft <- rename(theft, c("Year"="FY_Year"))
+```
+
+```{r}
+head(theft)
+```
+
+
+```{r}
+library("dplyr")                                               
+library("plyr")                                            
+library("readr")
+mdata <- merge(theft, population, by= c("Territorial.Authority","Year"))
+```
+
+```{r}
+head(mdata)
+sum(is.na(mdata))
+dim(mdata)
+```
+
+
+```{r}
+mdata$Theft_rate <- (mdata$Victimisations/mdata$Population * 1000)
+mdata$log_population <- (log(mdata$Population))
+```
+
+```{r}
+head(mdata)
+```
+
+
+```{r}
+mdata$log_population <- (log(mdata$Population))
+```
+
+# Correlation Stage
+
+```{r}
+plot(x = mdata$Population, y = mdata$Theft_rate,
+    xlab = "Population",
+    ylab = "Theft_rate",
+    main = "Population vs Theft_rate"
+)
+
+
+```
+### Log Transformation of Population Applied
+```{r}
+plot(x = mdata$log_population, y = mdata$Theft_rate,
+    xlab = "Population",
+    ylab = "Theft_rate",
+    main = "Log(Population) vs Theft_rate"
+)
+
+
+```
+
+
+
+## Spearman & Pearson Correlation
+```{r}
+library(psych)
+mdata%>%
+dplyr::select(log_population, Theft_rate)%>% pairs.panels(method = "spearman", hist.col = "lightgreen", density = TRUE, ellipses = FALSE )
+```
+```{r}
+mdata%>%
+dplyr::select(log_population, Theft_rate)%>% pairs.panels(method = "pearson", hist.col = "lightgreen", density = TRUE, ellipses = FALSE )
+```
+
+
+```{r}
+cor.test(mdata$log_population, mdata$Theft_rate, alternative = "two.sided", method = "pearson", conf.level = 0.95)
+```
+```{r}
+cor.test(mdata$log_population, mdata$Theft_rate, alternative = "two.sided", method = "spearman")
+```
+ 
+### *Spearman will be used and focused on as main result because theft rate is right-skewed and the spread widens on the right.*        
+
+
+
+## Filtering data for correlation due to limitation
+```{r}
+
+data_23 <- mdata[mdata$Year == "2023", ]
+data_24 <- mdata[mdata$Year == "2024", ]
+data_25 <- mdata[mdata$Year == "2025", ]
+head(data_25)
+```
+
+
+```{r}
+cor.test(data_23$log_population, data_23$Theft_rate, alternative = "two.sided", method = "spearman")
+cor.test(data_24$log_population, data_24$Theft_rate, alternative = "two.sided", method = "spearman")
+cor.test(data_25$log_population, data_25$Theft_rate, alternative = "two.sided", method = "spearman")
+
+```
+```{r}
+summary(mdata) 
+```
+
+
+# Regression model & Assumption Tests
+```{r}
+model1<-lm(Theft_rate~ log_population ,data=mdata)
+confint.lm(model1, level= 0.95) 
+summary(model1)
+```
+
+```{r}
+library(mgcv)
+library(dplyr)
+par(mfrow=c(2,2))
+plot(model1)
+```
+
+```{r}
+
+model2<-lm(log(Theft_rate)~ log_population ,data=mdata)
+confint.lm(model2, level= 0.95) 
+summary(model2)
+
+par(mfrow=c(2,2))
+plot(model2)
+```
+```{r}
+model2<-lm(log(Theft_rate)~ log_population , data=data_24)
+confint.lm(model2, level= 0.95) 
+summary(model2)
+
+par(mfrow=c(2,2))
+plot(model2)
+```
+
+
+
+
+## Correlation & Results Table
+
+```{r}
+library(pander)
+test_type <- c("Pooled Pearson", "Pooled Spearman", "Spearman FY2023", "Spearman FY2024", "Spearman FY2025")
+n_val <- c(201, 201, 67,67,67)
+coef_val  <- c(0.616, 0.626, 0.653,0.603, 0.629)
+ci_val    <- c("[0.52, 0.70]", "-", "-", "-", "-") 
+p_val     <- c("<0.001", "<0.001", "<0.001", "<0.001", "<0.001")
+
+corr_table <- data.frame(test_type, n_val, coef_val, ci_val, p_val)
+names(corr_table) <- c("Correlation Type", "n", "Coefficient", "95% CI", "p-value")
+pander(corr_table, round = 3, align = 'c')
+
+```
+
+
+## K-fold Validation
+
+
+```{r}
+set.seed(0)                       # any number, so your folds can be repeated
+k <- 10                            # number of folds (check your notes)
+
+# Step 1: one fold number per TA, not per row
+tas <- unique(mdata$Territorial.Authority)
+fold_of_ta <- sample(rep(1:k, length.out = length(tas)))              # random fold number for each TA
+names(fold_of_ta) <- tas # join the fold number back onto mdata, so a TA's 3 rows share it
+mdata$fold <- unname(fold_of_ta[mdata$Territorial.Authority])
+
+```
+
+
+
+```{r}
+set.seed(256)                       
+k <- 10                           
+
+
+tas <- unique(mdata$Territorial.Authority)
+fold_of_ta <- sample(rep(1:k, length.out = length(tas)))            
+names(fold_of_ta) <- tas 
+mdata$fold <- unname(fold_of_ta[mdata$Territorial.Authority])
+
+
+rmse <- numeric(k)
+for (i in 1:k) {
+  train <- mdata[mdata$fold != i, ]                    
+  test  <- mdata[mdata$fold == i, ]                     
+
+  fit  <- lm(log(Theft_rate) ~ log_population, data = train)
+  pred <- exp(predict(fit, newdata = test))     
+
+         
+  rmse[i] <- sqrt(mean((test$Theft_rate - pred)^2))
+}
+
+
+mean(rmse)                          
+```
+
+
+```{r}
+summary(model2)
+confint(model2)
+```
+
+```{r}
+sd(mdata$Theft_rate)                        
+```
+```{r}
+rmse_base <- numeric(k)
+for (i in 1:k) {
+  train <- mdata[mdata$fold != i, ]
+  test  <- mdata[mdata$fold == i, ] 
+
+  pred <- rep(mean(train$Theft_rate), nrow(test))    
+
+  rmse_base[i] <- sqrt(mean((test$Theft_rate - pred)^2))
+}
+mean(rmse_base)
+```
+```{r}
+mean(rmse)
+mean(rmse_base)
+```
+```{r}
+range(rmse)
+range(rmse_base)
+```
+
+```{r}
+plot(x = 1:k, y = rmse, type = "b", col = "blue", lwd = 3,
+    xlab = "Fold Number",
+    ylab = "Cross-Validation RMSE",
+    main = "K-fold Cross-Validation RMSE",
+    ylim = c(6, 28))
+
+lines(x = 1:k, y = rmse_base, col = "red", lwd = 3, lty= 2, type = "b")
+
+legend(x = "topleft", lty = c(1,2), text.font = 2, lwd = 2.5,
+       col= c("blue","red"),text.col = c("blue", "red"), 
+       legend=c("K-fold RMSE", "Baseline RMSE"))
+```
+```{r}
+library(pander)
+
+model_rmse <- c(12.564)
+base_rmse  <- c(15.396)
+difference <- c(2.832)    
+sd_value   <- c(15.880)
+
+rmse_table <- data.frame(model_rmse, base_rmse, difference, sd_value)
+names(rmse_table) <- c("Model RMSE", "Baseline RMSE", "Difference", "Standard Deviation")
+pander(rmse_table, round = 2, align = 'c')
+
+```
+```{r}
+model2<-lm(log(Theft_rate)~ log_population ,data=mdata)
+confint.lm(model2, level= 0.95) 
+summary(model2)
+```
+
+
