@@ -2,7 +2,7 @@
 
 Does the population of a territorial authority (TA) affect its theft rate? A data science project using NZ Police and Stats NZ data, completed for a university course.
 
-![Theft rate against log population](images/theft-vs-log-population.png)
+![Theft rate against log population](theft-vs-log-population.png)
 
 ## Summary
 I investigated whether the population size of a TA is related to its recorded theft rate, using data for 67 TAs across three financial years (FY2023 to FY2025). Larger TAs tended to have higher theft rates, with a moderate positive correlation (pooled Pearson 0.62, 95% CI 0.52 to 0.70). The relationship held in each individual year (0.60 to 0.65). Population on its own was a weak predictor, explaining about a third of the variation (R² = 0.363).
@@ -39,8 +39,8 @@ Sources:
 
 Population improved predictions over the baseline by 2.83 units, but left a lot of variation unexplained, so it is not a strong predictor on its own.
 
-![Diagnostic plots after log transformation](images/diagnostics-log-model.png)
-![K-fold cross-validation RMSE](images/kfold-rmse.png)
+![Diagnostic plots after log transformation](diagnostics-log-model.png)
+![K-fold cross-validation RMSE](kfold-rmse.png)
 
 ## Limitations
 - Recorded crime only, so unreported crime is not captured
@@ -65,7 +65,7 @@ R, R Markdown, ProjectLibre
 ## Files
 - `analysis.Rmd`: [rename to match your file] the full analysis
 - `report.pdf`: [if you decide to include it] the written report
-- `images/`: figures used in this README
+- `/`: figures used in this README
 
 ## Data, Privacy and Ethics
 The datasets are publicly available from the sources above and are not included in this repo.
