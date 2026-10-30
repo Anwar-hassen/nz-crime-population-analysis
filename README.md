@@ -51,8 +51,8 @@ Correlation does not show cause. Recorded rates should also not be read as a ran
 R, R Markdown, ProjectLibre
 
 ## Files
-- `analysis-code.Rmd`: [rename to match your file] the full analysis
-- `crime-analysis-report.pdf`: [if you decide to include it] the written report
+- `analysis-code.Rmd`: the full analysis in R Markdown, covering data cleaning, correlation testing, model diagnostics and cross-validation
+- `crime-analysis-report.pdf`: the written report with the full method, results and limitations
 
 
 ## Data, Privacy and Ethics
