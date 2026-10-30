@@ -29,13 +29,7 @@ Sources:
 6. Tested predictive performance with 10-fold cross-validation against a simple baseline
 
 ## Results
-| Measure | Result |
-|---|---|
-| Pooled Pearson correlation | 0.62 (95% CI 0.52 to 0.70) |
-| Pooled Spearman correlation | 0.63 |
-| Correlation by year | 0.60 to 0.65, all p < 0.001 |
-| R² | 0.363 |
-| Cross-validated RMSE | 12.56 (baseline 15.40) |
+![Correlation Results by method and year](correlation-results.png)
 
 Population improved predictions over the baseline by 2.83 units, but left a lot of variation unexplained, so it is not a strong predictor on its own.
 
@@ -52,20 +46,14 @@ Population improved predictions over the baseline by 2.83 units, but left a lot 
 
 Correlation does not show cause. Recorded rates should also not be read as a ranking of "safe" and "dangerous" areas, since reporting behaviour and policing activity affect recorded counts.
 
-## My role
-[Edit this to match what you did. From the report, it could include:]
-- Completed the Phase 2 analysis: correlation testing, model diagnostics, log transformation and cross-validation
-- Cleaned and joined the two datasets
-- Wrote the report and produced the figures
-- Planned the project in ProjectLibre
 
 ## Tools
 R, R Markdown, ProjectLibre
 
 ## Files
-- `analysis.Rmd`: [rename to match your file] the full analysis
-- `report.pdf`: [if you decide to include it] the written report
-- `/`: figures used in this README
+- `analysis-code.Rmd`: [rename to match your file] the full analysis
+- `crime-analysis-report.pdf`: [if you decide to include it] the written report
+
 
 ## Data, Privacy and Ethics
 The datasets are publicly available from the sources above and are not included in this repo.
